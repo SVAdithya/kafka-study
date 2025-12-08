@@ -1,0 +1,7 @@
+resource_group_name = "rg-kafka-study-dev"
+location            = "eastus"
+cluster_name        = "aks-kafka-study-dev"
+node_count          = 2
+node_vm_size        = "Standard_DS2_v2"
+dns_prefix          = "kafka-study-dev"
+subscription_id     = "64e6990e-3b3f-4118-a99a-8a77c4f4d968"

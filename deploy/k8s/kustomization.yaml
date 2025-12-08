@@ -12,11 +12,26 @@ namePrefix: dev-
 
 commonLabels:
   environment: dev
+  app.kubernetes.io/version: "1.0.0"  # Update with version.sh script
 
 configMapGenerator:
   - name: env-config
     literals:
       - ENVIRONMENT=dev
+      - APP_VERSION=1.0.0
+
+# Replace ConfigMap and Secret references to use namespace-aware DNS
+replacements:
+  - source:
+      kind: ConfigMap
+      name: my-config
+      fieldPath: data.spring\.kafka\.consumer\.bootstrap-servers
+    targets:
+      - select:
+          kind: ConfigMap
+          name: my-config
+        fieldPaths:
+          - data.spring\.kafka\.consumer\.bootstrap-servers
 
 patches:
   - target:
@@ -28,7 +43,12 @@ patches:
         value: 1
       - op: replace
         path: /spec/template/spec/containers/0/image
-        value: adithyasv/my-app:dev-latest
+        value: adithyasv/my-app:1.0.0
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: Always
+      - op: add
+        path: /spec/template/metadata/annotations
+        value:
+          app.version: "1.0.0"
+          deployment.timestamp: "generated-by-kustomize"
