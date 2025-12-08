@@ -1,0 +1,25 @@
+variable "resource_group_name" { 
+    type = string 
+    }
+variable "location" { 
+    type = string 
+    }
+variable "cluster_name" { 
+    type = string 
+    }
+
+variable "node_count" { 
+    type = number 
+    }
+variable "node_vm_size" { 
+    type = string
+    }
+
+variable "dns_prefix" { 
+    type = string
+    }
+
+variable "subscription_id" {
+  type = string
+}
+

@@ -36,3 +36,31 @@ build/
 deploy/k8s/.DS_Store
 deploy/.DS_Store
 .DS_Store
+
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Ignore Terraform variable files that contain secrets
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+
+# Ignore Terraform local settings
+.terraform/
+.terraform.lock.hcl
+
+# Ignore override files
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Ignore editor/OS junk
+.DS_Store
+Thumbs.db
+*.log
