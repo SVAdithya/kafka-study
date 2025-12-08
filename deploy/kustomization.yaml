@@ -5,5 +5,4 @@ resources:
   - ./k8s/kafka-deployment.yaml
   - ./k8s/mongodb-deployment.yaml
   - ./k8s/app-deployment.yaml
-  - ./k8s/prometheus-deployment.yaml
-  - ./k8s/grafana-deployment.yaml
+
