@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.kafka.receiver.KafkaReceiver;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@ConditionalOnProperty(name = "reactive.kafka.autostart", havingValue = "true", matchIfMissing = false)
 public class ReactiveKafkaListener implements CommandLineRunner {
 	private static final Logger logger = LoggerFactory.getLogger(ReactiveKafkaListener.class);
 

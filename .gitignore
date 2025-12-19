@@ -36,3 +36,39 @@ build/
 deploy/k8s/.DS_Store
 deploy/.DS_Store
 .DS_Store
+
+### Terraform ###
+# Local .terraform directories
+**/.terraform/*
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Terraform variable files (may contain sensitive data)
+*.tfvars
+*.tfvars.json
+
+# Terraform plan files
+*tfplan*
+
+# Terraform crash log files
+crash.log
+crash.*.log
+
+# Terraform override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform CLI configuration files
+.terraformrc
+terraform.rc
+
+# Terraform lock files (uncomment if you want to ignore)
+# .terraform.lock.hcl
+
+### Logs ###
+*.log
+
