@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,7 @@ import java.util.Collections;
 
 @EnableKafka
 @Configuration
+@ConditionalOnProperty(name = "regular.kafka.autostart", havingValue = "true", matchIfMissing = false)
 public class KafkaConsumerConfiguration {
 	private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerConfiguration.class);
 
@@ -54,6 +56,7 @@ public class KafkaConsumerConfiguration {
 		factory.setAutoStartup(regularAutoStart);
 		factory.setConcurrency(5);
 		factory.setRecordFilterStrategy(record -> record.value().startsWith("test"));
+		logger.info("Configured Kafka listener with concurrency=2, autoStartup={}", regularAutoStart);
 		return factory;
 	}
 

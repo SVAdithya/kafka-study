@@ -5,12 +5,12 @@
 # Resource Group Outputs
 output "resource_group_name" {
   description = "The name of the resource group"
-  value       = data.azurerm_resource_group.main.name
+  value       = azurerm_resource_group.main.name
 }
 
 output "resource_group_location" {
   description = "The location of the resource group"
-  value       = data.azurerm_resource_group.main.location
+  value       = azurerm_resource_group.main.location
 }
 
 # ========================================
@@ -44,38 +44,38 @@ output "cosmosdb_connection_string" {
 }
 
 # ========================================
-# Service Bus Outputs
+# Event Hub Outputs (Kafka-compatible)
 # ========================================
 
-output "servicebus_namespace_name" {
-  description = "The name of the Service Bus namespace"
-  value       = module.servicebus.namespace_name
+output "eventhub_namespace_name" {
+  description = "The name of the Event Hub namespace"
+  value       = module.eventhub.namespace_name
 }
 
-output "servicebus_endpoint" {
-  description = "The endpoint URL for the Service Bus namespace"
-  value       = module.servicebus.namespace_endpoint
+output "eventhub_endpoint" {
+  description = "The endpoint URL for the Event Hub namespace"
+  value       = module.eventhub.namespace_endpoint
 }
 
-output "servicebus_connection_string" {
-  description = "Service Bus primary connection string (sensitive - stored in Key Vault)"
-  value       = module.servicebus.primary_connection_string
+output "eventhub_kafka_endpoint" {
+  description = "The Kafka-compatible endpoint for Event Hub"
+  value       = module.eventhub.kafka_endpoint
+}
+
+output "eventhub_connection_string" {
+  description = "Event Hub primary connection string (sensitive - stored in Key Vault)"
+  value       = module.eventhub.primary_connection_string
   sensitive   = true
 }
 
-output "servicebus_topics" {
-  description = "Map of created Service Bus topics"
-  value       = module.servicebus.topics
+output "eventhub_names" {
+  description = "List of created Event Hub names"
+  value       = module.eventhub.eventhub_names
 }
 
-output "servicebus_queues" {
-  description = "Map of created Service Bus queues"
-  value       = module.servicebus.queues
-}
-
-output "servicebus_subscriptions" {
-  description = "Map of created Service Bus subscriptions"
-  value       = module.servicebus.subscriptions
+output "consumer_group_names" {
+  description = "List of created consumer group names"
+  value       = module.eventhub.consumer_group_names
 }
 
 # ========================================
@@ -124,20 +124,19 @@ output "appconfig_connection_string" {
 output "deployment_summary" {
   description = "Summary of all deployed resources"
   value = {
-    environment         = var.environment
-    resource_group      = data.azurerm_resource_group.main.name
-    location            = local.location
-    
+    environment    = var.environment
+    resource_group = azurerm_resource_group.main.name
+    location       = local.location
+
     # Resources
-    cosmos_db           = module.cosmos.cosmosdb_account_name
-    servicebus          = module.servicebus.namespace_name
-    keyvault            = module.keyvault.keyvault_name
-    appconfig           = module.appconfig.appconfig_name
-    
+    cosmos_db = module.cosmos.cosmosdb_account_name
+    eventhub  = module.eventhub.namespace_name
+    keyvault  = module.keyvault.keyvault_name
+    appconfig = module.appconfig.appconfig_name
+
     # Counts
-    topics_count        = length(module.servicebus.topics)
-    queues_count        = length(module.servicebus.queues)
-    subscriptions_count = length(module.servicebus.subscriptions)
+    eventhubs_count       = length(module.eventhub.eventhub_names)
+    consumer_groups_count = length(module.eventhub.consumer_group_names)
   }
 }
 
@@ -149,27 +148,30 @@ output "application_config_guide" {
   description = "Guide for application configuration"
   value = {
     message = "All connection strings are stored in Key Vault and App Configuration"
-    
+
     keyvault_secrets = [
       "cosmos-connection-string",
       "cosmos-primary-key",
-      "servicebus-connection-string",
-      "servicebus-listen-connection",
-      "servicebus-send-connection"
+      "eventhub-connection-string",
+      "eventhub-listen-connection",
+      "eventhub-send-connection",
+      "eventhub-kafka-endpoint"
     ]
-    
+
     appconfig_keys = [
       "ConnectionStrings:CosmosDB (Key Vault Reference)",
-      "ConnectionStrings:ServiceBus (Key Vault Reference)",
+      "ConnectionStrings:EventHub (Key Vault Reference)",
+      "ConnectionStrings:Kafka (Key Vault Reference)",
       "CosmosDB:Endpoint",
       "CosmosDB:DatabaseName",
-      "ServiceBus:Namespace",
-      "ServiceBus:Endpoint"
+      "EventHub:Namespace",
+      "EventHub:Endpoint",
+      "EventHub:KafkaEndpoint"
     ]
-    
+
     access_methods = {
-      cli_keyvault = "az keyvault secret show --vault-name ${module.keyvault.keyvault_name} --name cosmos-connection-string"
-      cli_appconfig = "az appconfig kv show --name ${module.appconfig.appconfig_name} --key CosmosDB:Endpoint"
+      cli_keyvault     = "az keyvault secret show --vault-name ${module.keyvault.keyvault_name} --name cosmos-connection-string"
+      cli_appconfig    = "az appconfig kv show --name ${module.appconfig.appconfig_name} --key CosmosDB:Endpoint"
       terraform_output = "terraform output -raw cosmosdb_connection_string"
     }
   }

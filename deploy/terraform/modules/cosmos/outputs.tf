@@ -18,8 +18,8 @@ output "cosmosdb_endpoint" {
 }
 
 output "cosmosdb_primary_connection_string" {
-  description = "The primary connection string"
-  value       = azurerm_cosmosdb_account.main.connection_strings[0]
+  description = "The primary MongoDB connection string"
+  value       = azurerm_cosmosdb_account.main.primary_mongodb_connection_string
   sensitive   = true
 }
 

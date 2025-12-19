@@ -20,7 +20,7 @@ variable "project_name" {
 variable "cost_center" {
   description = "Cost center for billing and chargeback"
   type        = string
-  default     = ""
+  default     = "engineering"
 }
 
 # ========================================
@@ -28,14 +28,15 @@ variable "cost_center" {
 # ========================================
 
 variable "resource_group_name" {
-  description = "The name of the existing resource group where resources will be created"
+  description = "The name of the resource group where resources will be created (will be created if it doesn't exist)"
   type        = string
+  default     = "kafka-study-rg"
 }
 
 variable "location" {
-  description = "The Azure region where resources will be created. If empty, uses the resource group location"
+  description = "The Azure region where resources will be created"
   type        = string
-  default     = ""
+  default     = "southindia"
 }
 
 # ========================================
@@ -65,13 +66,13 @@ variable "collection_name" {
 }
 
 variable "enable_automatic_failover" {
-  description = "Enable automatic failover for Cosmos DB"
+  description = "Enable automatic failover for Cosmos DB (not supported in serverless mode)"
   type        = bool
   default     = false
 }
 
 variable "enable_free_tier" {
-  description = "Enable free tier for Cosmos DB (only one free tier account per subscription)"
+  description = "Enable free tier for Cosmos DB (not supported in serverless mode, only one free tier account per subscription)"
   type        = bool
   default     = false
 }
@@ -124,9 +125,13 @@ variable "keyvault_name" {
 }
 
 variable "keyvault_sku" {
-  description = "The SKU name of the Key Vault"
+  description = "The SKU name of the Key Vault (standard, premium)"
   type        = string
   default     = "standard"
+  validation {
+    condition     = contains(["standard", "premium"], var.keyvault_sku)
+    error_message = "Key Vault SKU must be standard or premium"
+  }
 }
 
 variable "soft_delete_retention_days" {
@@ -162,77 +167,70 @@ variable "appconfig_sku" {
 }
 
 # ========================================
-# Azure Service Bus Variables
+# Azure Event Hub Variables (Kafka-compatible)
 # ========================================
 
-variable "servicebus_namespace_name" {
-  description = "The name of the Service Bus namespace. If empty, uses naming convention: {environment}-sb"
+variable "eventhub_namespace_name" {
+  description = "The name of the Event Hub namespace. If empty, uses naming convention: {environment}-eh-{random}"
   type        = string
   default     = ""
   validation {
-    condition     = var.servicebus_namespace_name == "" || can(regex("^[a-zA-Z][a-zA-Z0-9-]{4,48}[a-zA-Z0-9]$", var.servicebus_namespace_name))
-    error_message = "Service Bus namespace must start with a letter, be 6-50 characters long, and contain only letters, numbers, and hyphens"
+    condition     = var.eventhub_namespace_name == "" || can(regex("^[a-zA-Z][a-zA-Z0-9-]{4,48}[a-zA-Z0-9]$", var.eventhub_namespace_name))
+    error_message = "Event Hub namespace must start with a letter, be 6-50 characters long, and contain only letters, numbers, and hyphens"
   }
 }
 
-variable "servicebus_sku" {
-  description = "The SKU of the Service Bus namespace (Basic, Standard, Premium)"
+variable "eventhub_sku" {
+  description = "The SKU of the Event Hub namespace (Basic, Standard, Premium)"
   type        = string
   default     = "Standard"
   validation {
-    condition     = contains(["Basic", "Standard", "Premium"], var.servicebus_sku)
-    error_message = "Service Bus SKU must be Basic, Standard, or Premium"
+    condition     = contains(["Basic", "Standard", "Premium"], var.eventhub_sku)
+    error_message = "Event Hub SKU must be Basic, Standard, or Premium"
   }
 }
 
-variable "servicebus_capacity" {
-  description = "The capacity/messaging units for Premium SKU (1, 2, 4, 8, or 16)"
+variable "eventhub_capacity" {
+  description = "The capacity/throughput units (1-20 for Basic/Standard, 1-10 for Premium)"
   type        = number
   default     = 1
   validation {
-    condition     = contains([1, 2, 4, 8, 16], var.servicebus_capacity)
-    error_message = "Service Bus capacity must be 1, 2, 4, 8, or 16"
+    condition     = var.eventhub_capacity >= 1 && var.eventhub_capacity <= 20
+    error_message = "Event Hub capacity must be between 1 and 20"
   }
 }
 
-variable "servicebus_topics" {
-  description = "Map of Service Bus topics to create"
+variable "eventhub_auto_inflate_enabled" {
+  description = "Enable auto-inflate for throughput units"
+  type        = bool
+  default     = false
+}
+
+variable "eventhub_maximum_throughput_units" {
+  description = "Maximum throughput units when auto-inflate is enabled"
+  type        = number
+  default     = 20
+}
+
+variable "event_hubs" {
+  description = "Map of Event Hubs to create (Kafka topics)"
   type = map(object({
-    enable_partitioning                      = optional(bool, false)
-    max_size_in_megabytes                   = optional(number, 1024)
-    default_message_ttl                      = optional(string, null)
-    auto_delete_on_idle                     = optional(string, null)
-    duplicate_detection_history_time_window = optional(string, null)
-    requires_duplicate_detection            = optional(bool, false)
-    support_ordering                        = optional(bool, false)
+    partition_count               = optional(number, 2)
+    message_retention             = optional(number, 1)
+    capture_enabled               = optional(bool, false)
+    capture_interval_seconds      = optional(number, 300)
+    capture_size_limit            = optional(number, 314572800)
+    capture_container             = optional(string, "eventhub-capture")
+    capture_storage_account_id    = optional(string, "")
   }))
   default = {}
 }
 
-variable "servicebus_subscriptions" {
-  description = "Map of Service Bus subscriptions to create"
+variable "consumer_groups" {
+  description = "Map of consumer groups to create (Kafka consumer groups)"
   type = map(object({
-    topic_name                               = string
-    max_delivery_count                       = optional(number, 10)
-    lock_duration                           = optional(string, "PT1M")
-    default_message_ttl                      = optional(string, null)
-    dead_lettering_on_message_expiration    = optional(bool, true)
-  }))
-  default = {}
-}
-
-variable "servicebus_queues" {
-  description = "Map of Service Bus queues to create"
-  type = map(object({
-    enable_partitioning                      = optional(bool, false)
-    max_size_in_megabytes                   = optional(number, 1024)
-    default_message_ttl                      = optional(string, null)
-    lock_duration                           = optional(string, "PT1M")
-    max_delivery_count                       = optional(number, 10)
-    dead_lettering_on_message_expiration    = optional(bool, true)
-    requires_duplicate_detection            = optional(bool, false)
-    duplicate_detection_history_time_window = optional(string, null)
-    requires_session                        = optional(bool, false)
+    eventhub_name = string
+    user_metadata = optional(string, null)
   }))
   default = {}
 }

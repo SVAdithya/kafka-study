@@ -2,14 +2,22 @@
 # Cosmos DB Module - Variables
 # ========================================
 
+variable "create_resource_group" {
+  description = "Whether to create a new resource group (useful for standalone testing)"
+  type        = bool
+  default     = false
+}
+
 variable "cosmosdb_account_name" {
   description = "The name of the Cosmos DB account"
   type        = string
+  default     = "cosmosdb-account1-985412"
 }
 
 variable "location" {
   description = "The Azure region where Cosmos DB will be created"
   type        = string
+  default     = "southindia"
 }
 
 variable "resource_group_name" {
@@ -20,6 +28,7 @@ variable "resource_group_name" {
 variable "database_name" {
   description = "The name of the MongoDB database"
   type        = string
+  default     = "mongo-db1"
 }
 
 variable "collection_name" {
@@ -29,13 +38,13 @@ variable "collection_name" {
 }
 
 variable "enable_automatic_failover" {
-  description = "Enable automatic failover for Cosmos DB"
+  description = "Enable automatic failover for Cosmos DB (not supported in serverless mode)"
   type        = bool
   default     = false
 }
 
 variable "enable_free_tier" {
-  description = "Enable free tier for Cosmos DB"
+  description = "Enable free tier for Cosmos DB (not supported in serverless mode)"
   type        = bool
   default     = false
 }
