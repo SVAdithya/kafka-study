@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-stream-binder-kafka-reactive</artifactId>
-			<version>4.3.0</version>
+			<version>4.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>io.projectreactor.kafka</groupId>
